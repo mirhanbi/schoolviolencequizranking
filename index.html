@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학교폭력 예방 귀요미 퀴즈</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poor+Story&display=swap');
+
+        body {
+            font-family: 'Poor Story', cursive;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        #start-page h1, #quiz-container h2, #result-page h2 {
+            color: #ff69b4;
+            font-size: 2.5em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.2em;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 2px solid #ffc0cb;
+            border-radius: 10px;
+            font-family: 'Poor Story', cursive;
+            font-size: 1.1em;
+            resize: vertical;
+        }
+
+        button {
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: 'Poor Story', cursive;
+            font-size: 1.5em;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #ff1493;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #quiz-container, #result-page {
+            display: none;
+        }
+        
+        #timer {
+            font-size: 1.8em;
+            color: #32cd32;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .question {
+            margin-bottom: 30px;
+            text-align: left;
+            font-size: 1.4em;
+        }
+
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .answer {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            text-align: left;
+            font-size: 1.2em;
+        }
+
+        .answer:hover {
+            background-color: #e0e0e0;
+            transform: scale(1.02);
+        }
+        
+        .answer.selected {
+            background-color: #add8e6;
+            border: 2px solid #87ceeb;
+        }
+
+        input[type="radio"] {
+            display: none;
+        }
+        
+        #result-page p {
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        #result-page .score {
+            font-size: 3em;
+            color: #ff69b4;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        #explanations {
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        #explanations h3 {
+            color: #ff69b4;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ffc0cb;
+            padding-bottom: 10px;
+        }
+
+        .explanation-item {
+            background-color: #fff0f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 5px solid #ff69b4;
+        }
+
+        .explanation-item p {
+            margin: 8px 0;
+            font-size: 1.1em;
+        }
+        .explanation-item .correct-answer {
+            color: #228b22;
+            font-weight: bold;
+        }
+        .explanation-item .user-answer {
+            color: #dc143c;
+            font-weight: bold;
+        }
+        .explanation-item .explanation-text {
+            color: #555;
+            font-size: 1em;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 인적사항 입력 페이지 (첫 화면) -->
+        <div id="start-page">
+            <h1>🏫 학교폭력 예방 퀴즈 ✏️</h1>
+            <p style="font-size: 1.2em; color: #555;">연수 내용을 퀴즈로 확인해봐요!</p>
+            <div class="input-group">
+                <label for="school">🏫 소속 학교</label>
+                <input type="text" id="school" placeholder="예) 00중">
+            </div>
+            <div class="input-group">
+                <label for="name">👤 이름</label>
+                <input type="text" id="name" placeholder="예) 김행복">
+            </div>
+            <p id="error-message" style="color: red; display: none; font-size: 1.1em;">소속 학교와 이름을 모두 입력해주세요!</p>
+            <button onclick="startQuiz()">퀴즈 시작!</button>
+        </div>
+
+        <!-- 퀴즈 페이지 -->
+        <div id="quiz-container">
+            <h2>학교폭력 예방 퀴즈</h2>
+            <div id="timer">00:00</div>
+            <form id="quiz-form">
+                <!-- 퀴즈 문항이 여기에 동적으로 추가됩니다 -->
+            </form>
+            <button onclick="submitQuiz()">결과 확인하기</button>
+        </div>
+
+        <!-- 결과 페이지 -->
+        <div id="result-page">
+            <h2>✨ 퀴즈 결과 ✨</h2>
+            <p><span id="result-school"></span> <span id="result-name"></span>님의 점수는?</p>
+            <p class="score" id="score"></p>
+            <p>⏰ 소요 시간: <span id="elapsed-time"></span></p>
+            
+            <div class="input-group" id="feedback-section">
+                <label for="feedback" style="font-size:1.5em; text-align:center; margin-bottom: 15px;">📝 연수 소감문</label>
+                <textarea id="feedback" rows="4" placeholder="퀴즈를 풀어본 소감이나 연수에 대한 의견을 자유롭게 남겨주세요."></textarea>
+            </div>
+            
+            <button onclick="submitFeedback()" id="submit-feedback-btn">소감문 전송하기</button>
+            <p id="submit-status" style="display: none; margin-top: 15px; font-size: 1.2em;"></p>
+
+            <button onclick="checkRank()" id="check-rank-btn" style="display: none; margin-top: 15px;">🏆 현재 등수 확인</button>
+            <div id="rank-display" style="margin-top: 20px; font-size: 1.3em;"></div>
+
+            <div id="explanations"></div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "1. 다음 중 '학교폭력예방법'에서 정의하는 학교폭력에 해당하지 <u>않는</u> 것은 무엇인가요?",
+                answers: ["학생 간에 발생한 사이버 따돌림", "학생의 물건을 빼앗는 행위(공갈)", "성적 부진으로 인한 부모의 꾸중", "강제로 심부름을 시키는 행위"],
+                correct: "성적 부진으로 인한 부모의 꾸중",
+                explanation: "학교폭력은 '학생'을 대상으로 발생한 신체, 정신, 재산상의 피해를 주는 행위를 말하며, 부모님의 꾸중과 같은 정당한 교육 활동은 해당하지 않습니다."
+            },
+            {
+                question: "2. 장난으로 친구의 바지를 내리는 행위는 학교폭력의 여러 유형 중 어디에 가장 가깝게 해당될까요?",
+                answers: ["신체폭력", "성폭력", "언어폭력", "따돌림"],
+                correct: "성폭력",
+                explanation: "장난으로 한 행동이라도 상대방이 성적 수치심이나 굴욕감을 느끼게 하는 행위는 성폭력에 해당할 수 있습니다. 행위의 의도보다 피해자의 감정이 중요합니다."
+            },
+            {
+                question: "3. 다음 중 학교폭력 피해 학생의 징후로 보기 <u>어려운</u> 것은 무엇인가요?",
+                answers: ["몸에 알 수 없는 상처나 멍이 자주 발견된다.", "학교 가는 것을 두려워하고 결석이 잦아진다.", "쉬는 시간에 친구들과 어울려 적극적으로 활동한다.", "갑자기 SNS 계정을 탈퇴하거나 휴대전화 사용을 꺼린다."],
+                correct: "쉬는 시간에 친구들과 어울려 적극적으로 활동한다.",
+                explanation: "학교폭력 피해 학생은 보통 위축되어 혼자 있으려 하거나 친구 관계를 피하는 경향을 보입니다. 따라서 쉬는 시간에 친구들과 적극적으로 어울리는 것은 피해 징후로 보기 어렵습니다."
+            },
+            {
+                question: "4. 학교폭력 사안을 인지했을 경우, 학교는 언제까지 교육(지원)청에 보고해야 하나요?",
+                answers: ["인지 후 12시간 이내", "인지 후 24시간 이내", "인지 후 48시간 이내", "인지 후 72시간 이내"],
+                correct: "인지 후 48시간 이내",
+                explanation: "학교폭력 사안 처리 규정에 따라, 학교는 인지한 후 48시간 이내에 교육(지원)청에 보고해야 합니다. 신속한 초기 대응을 위함입니다."
+            },
+            {
+                question: "5. 학교폭력 사안 발생 시, 교사의 초기 대응으로 올바르지 <u>않은</u> 행동은 무엇인가요?",
+                answers: ["피해 학생과 가해 학생을 즉시 분리하여 추가 피해를 막는다.", "사안 조사 과정에서 개인적인 감정을 드러내지 않고 중립을 지킨다.", "문제를 조용히 해결하기 위해 교사 선에서 개인적으로 상황을 마무리한다.", "학교장에게 즉시 보고하고 관련 내용을 신고 접수 대장에 기록한다."],
+                correct: "문제를 조용히 해결하기 위해 교사 선에서 개인적으로 상황을 마무리한다.",
+                explanation: "학교폭력 사안을 교사 개인이 판단하여 마무리하는 것은 금지되어 있습니다. 모든 사안은 학교장 보고, 대장 기록 등 공식적인 절차에 따라 처리해야 합니다."
+            }
+        ];
+
+        let timer;
+        let startTime;
+        let resultData = {};
+        
+        // Google Apps Script 배포 URL을 입력하세요.
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7BaqB96gYycM_LTuoKgdoMMT3xNECdKxNBut2Lz15cXGqDrjYoKueBH3vV3sWszeS/exec';
+
+        function startQuiz() {
+            const school = document.getElementById('school').value;
+            const name = document.getElementById('name').value;
+            const errorMessage = document.getElementById('error-message');
+
+            if (!school.trim() || !name.trim()) {
+                errorMessage.style.display = 'block';
+                return;
+            }
+            errorMessage.style.display = 'none';
+
+            resultData.school = school;
+            resultData.name = name;
+
+            document.getElementById('start-page').style.display = 'none';
+            document.getElementById('quiz-container').style.display = 'block';
+
+            generateQuiz();
+            startTimer();
+        }
+
+        function startTimer() {
+            startTime = new Date();
+            const timerElement = document.getElementById('timer');
+            timer = setInterval(() => {
+                const now = new Date();
+                const timeDiff = Math.floor((now - startTime) / 1000);
+                const minutes = Math.floor(timeDiff / 60);
+                const seconds = timeDiff % 60;
+                timerElement.textContent = `${minutes}분 ${String(seconds).padStart(2, '0')}초`;
+            }, 1000);
+        }
+
+        function generateQuiz() {
+            const form = document.getElementById('quiz-form');
+            let quizHTML = '';
+            quizData.forEach((data, index) => {
+                quizHTML += `<div class="question" id="q${index}">${data.question}</div>`;
+                quizHTML += `<div class="answers">`;
+                data.answers.forEach((answer, answerIndex) => {
+                    const answerTextWithNumber = `${answerIndex + 1}. ${answer}`;
+                    quizHTML += `
+                        <label class="answer" for="q${index}a${answerIndex}">
+                            <input type="radio" id="q${index}a${answerIndex}" name="question${index}" value="${answer}">
+                            ${answerTextWithNumber}
+                        </label>
+                    `;
+                });
+                quizHTML += `</div><hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">`;
+            });
+            form.innerHTML = quizHTML;
+
+            document.querySelectorAll('.answer').forEach(label => {
+                label.addEventListener('click', () => {
+                    const radioName = label.querySelector('input[type="radio"]').name;
+                    document.querySelectorAll(`input[name="${radioName}"]`).forEach(radio => {
+                        radio.parentElement.classList.remove('selected');
+                    });
+                    label.classList.add('selected');
+                });
+            });
+        }
+
+        function submitQuiz() {
+            clearInterval(timer);
+            const endTime = new Date();
+            const timeDiff = Math.floor((endTime - startTime) / 1000);
+            const minutes = Math.floor(timeDiff / 60);
+            const seconds = timeDiff % 60;
+
+            const form = document.getElementById('quiz-form');
+            let score = 0;
+            const userAnswers = [];
+
+            quizData.forEach((data, index) => {
+                const selected = form.querySelector(`input[name="question${index}"]:checked`);
+                const userAnswer = selected ? selected.value : null;
+                userAnswers.push(userAnswer);
+                if (userAnswer === data.correct) {
+                    score++;
+                }
+            });
+            
+            resultData.score = Math.round((score / quizData.length) * 100);
+            resultData.elapsedTime = `${minutes}분 ${String(seconds).padStart(2, '0')}초`;
+            resultData.timeInSeconds = timeDiff;
+
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('result-page').style.display = 'block';
+            
+            window.scrollTo(0, 0);
+
+            document.getElementById('result-school').textContent = resultData.school;
+            document.getElementById('result-name').textContent = resultData.name;
+            document.getElementById('score').textContent = `${resultData.score}점`;
+            document.getElementById('elapsed-time').textContent = resultData.elapsedTime;
+            
+            // ★ 변경점: 결과 확인 시점에 바로 데이터 전송
+            sendInitialResult();
+            
+            displayExplanations(userAnswers);
+        }
+
+        // ★ 추가된 함수: 소감문 없이 초기 결과를 전송
+        async function sendInitialResult() {
+            const formData = new FormData();
+            formData.append('action', 'submitResult');
+            formData.append('school', resultData.school);
+            formData.append('name', resultData.name);
+            formData.append('score', resultData.score);
+            formData.append('elapsedTime', resultData.elapsedTime);
+            formData.append('timeInSeconds', resultData.timeInSeconds);
+
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
+                console.log("Initial results submitted successfully.");
+            } catch (error) {
+                console.error('Error submitting initial results:', error);
+            }
+        }
+        
+        function displayExplanations(userAnswers) {
+            const explanationsContainer = document.getElementById('explanations');
+            let explanationsHTML = '<h3>📝 틀린 문제 다시 보기</h3>';
+            let hasWrongAnswers = false;
+
+            quizData.forEach((data, index) => {
+                const userAnswer = userAnswers[index];
+                if (userAnswer !== data.correct) {
+                    hasWrongAnswers = true;
+                    explanationsHTML += `
+                        <div class="explanation-item">
+                            <p><b>${data.question}</b></p>
+                            <p class="correct-answer">정답: ${data.correct}</p>
+                            <p class="user-answer">선택한 답: ${userAnswer || '선택 안 함'}</p>
+                            <p class="explanation-text"><b>해설:</b> ${data.explanation}</p>
+                        </div>
+                    `;
+                }
+            });
+
+            if (!hasWrongAnswers) {
+                explanationsHTML += '<p style="font-size: 1.2em; text-align: center; color: green;">🎉 모든 문제를 맞혔어요! 완벽해요! 🎉</p>';
+            }
+
+            explanationsContainer.innerHTML = explanationsHTML;
+        }
+        
+        // ★ 변경된 함수: 소감문만 업데이트하도록 전송
+        async function submitFeedback() {
+            const feedback = document.getElementById('feedback').value;
+            const submitStatus = document.getElementById('submit-status');
+            const submitBtn = document.getElementById('submit-feedback-btn');
+            const checkRankBtn = document.getElementById('check-rank-btn');
+            const feedbackSection = document.getElementById('feedback-section');
+
+            if (!feedback.trim()) {
+                submitStatus.textContent = '📝 소감문을 먼저 작성해주세요!';
+                submitStatus.style.color = 'orange';
+                submitStatus.style.display = 'block';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = '전송 중...';
+            submitStatus.style.display = 'block';
+            submitStatus.style.color = 'blue';
+            submitStatus.textContent = '소감문을 전송하는 중...';
+
+            const formData = new FormData();
+            formData.append('action', 'submitFeedback');
+            formData.append('school', resultData.school);
+            formData.append('name', resultData.name);
+            formData.append('feedback', feedback);
+
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
+                if (response.ok) {
+                    submitStatus.textContent = '✅ 소감문이 성공적으로 전송되었습니다!';
+                    submitStatus.style.color = 'green';
+                    feedbackSection.style.display = 'none';
+                    submitBtn.style.display = 'none';
+                    checkRankBtn.style.display = 'inline-block';
+                } else {
+                    throw new Error('Server response was not ok.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                submitStatus.textContent = '❌ 전송에 실패했습니다. 관리자에게 문의해주세요.';
+                submitStatus.style.color = 'red';
+                submitBtn.disabled = false;
+                submitBtn.textContent = '소감문 전송하기';
+            }
+        }
+
+        async function checkRank() {
+            const rankDisplay = document.getElementById('rank-display');
+            const rankBtn = document.getElementById('check-rank-btn');
+
+            rankBtn.disabled = true;
+            rankBtn.textContent = '확인 중...';
+            rankDisplay.innerHTML = '';
+
+            try {
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getRankData`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+
+                if (data.error) {
+                    rankDisplay.innerHTML = `<p style="color: orange;">${data.error}</p>`;
+                } else {
+                    let finalHTML = '';
+
+                    // Display Top Ranks (1st and 2nd place)
+                    if (data.ranks && data.ranks.length > 0) {
+                        const medals = ['🥇', '🥈'];
+                        const colors = ['#f59e0b', '#6b7280'];
+                        const bgColors = ['#fffbe6', '#f3f4f6'];
+                        const borderColors = ['#ffecb3', '#e5e7eb'];
+
+                        data.ranks.slice(0, 2).forEach((rank, index) => {
+                            finalHTML += `
+                                <div style="background-color: ${bgColors[index]}; border: 1px solid ${borderColors[index]}; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                                    <p style="margin: 0; font-size: 1.5em; color: ${colors[index]};">${medals[index]} 현재 ${index + 1}위 ${medals[index]}</p>
+                                    <p style="margin: 8px 0 0 0; font-size: 1.3em;"><b>이름:</b> ${rank.name}</p>
+                                    <p style="margin: 4px 0 0 0; font-size: 1.2em;"><b>점수:</b> ${rank.score}점</p>
+                                    <p style="margin: 4px 0 0 0; font-size: 1.2em;"><b>소요 시간:</b> ${rank.elapsedTime}</p>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        finalHTML += '<p>아직 순위 데이터가 없습니다.</p>';
+                    }
+
+                    // Display Best Feedback Award
+                    if (data.bestFeedback) {
+                        finalHTML += `
+                            <div style="background-color: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 10px; margin-top: 20px;">
+                                <p style="margin: 0; font-size: 1.5em; color: #0891b2;">📝 소감 우수상 📝</p>
+                                <p style="margin: 8px 0 0 0; font-size: 1.3em;"><b>수상자:</b> ${data.bestFeedback.name} (${data.bestFeedback.school})</p>
+                                <p style="margin: 8px 0 0 0; font-size: 1.2em; text-align: left; line-height: 1.6; color: #333;"><b>소감:</b> "${data.bestFeedback.feedback}"</p>
+                            </div>
+                        `;
+                    } else {
+                        finalHTML += '<p style="margin-top: 20px;">소감 우수상 수상자를 집계 중입니다.</p>';
+                    }
+
+                    rankDisplay.innerHTML = finalHTML;
+                }
+            } catch (error) {
+                console.error('Error fetching rank:', error);
+                rankDisplay.innerHTML = '<p style="color: red;">등수 정보를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.</p>';
+            } finally {
+                rankBtn.disabled = false;
+                rankBtn.textContent = '🏆 현재 등수 확인';
+            }
+        }
+    </script>
+</body>
+</html>
+
+
