@@ -115,6 +115,8 @@
             transition: background-color 0.3s, transform 0.2s;
             text-align: left;
             font-size: 1.2em;
+            display: flex;
+            align-items: center;
         }
 
         .answer:hover {
@@ -125,6 +127,21 @@
         .answer.selected {
             background-color: #add8e6;
             border: 2px solid #87ceeb;
+        }
+
+        .answer-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.6em;
+            height: 1.6em;
+            border-radius: 50%;
+            background-color: #ffdde5;
+            color: #d6336c;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+            font-size: 0.9em;
         }
 
         input[type="radio"] {
@@ -314,11 +331,11 @@
                 quizHTML += `<div class="question" id="q${index}">${data.question}</div>`;
                 quizHTML += `<div class="answers">`;
                 data.answers.forEach((answer, answerIndex) => {
-                    const answerTextWithNumber = `${answerIndex + 1}. ${answer}`;
                     quizHTML += `
                         <label class="answer" for="q${index}a${answerIndex}">
                             <input type="radio" id="q${index}a${answerIndex}" name="question${index}" value="${answer}">
-                            ${answerTextWithNumber}
+                            <span class="answer-number">${answerIndex + 1}</span>
+                            <span>${answer}</span>
                         </label>
                     `;
                 });
@@ -523,7 +540,7 @@
                             finalHTML += `
                                 <div style="background-color: ${bgColors[index]}; border: 1px solid ${borderColors[index]}; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
                                     <p style="margin: 0; font-size: 1.5em; color: ${colors[index]};">${medals[index]} 종합 ${index + 1}위 ${medals[index]}</p>
-                                    <p style="margin: 8px 0 0 0; font-size: 1.3em;"><b>이름:</b> ${rank.name}</p>
+                                    <p style="margin: 8px 0 0 0; font-size: 1.3em;"><b>이름:</b> ${rank.name} (${rank.school})</p>
                                     <p style="margin: 4px 0 0 0; font-size: 1.2em;"><b>점수:</b> ${rank.score}점</p>
                                     <p style="margin: 4px 0 0 0; font-size: 1.2em;"><b>소요 시간:</b> ${rank.elapsedTime}</p>
                                 </div>
