@@ -204,7 +204,7 @@
         <!-- 퀴즈 페이지 -->
         <div id="quiz-container">
             <h2>학교폭력 예방 퀴즈</h2>
-            <div id="timer">00:00</div>
+            <div id="timer">0분 00초</div>
             <form id="quiz-form">
                 <!-- 퀴즈 문항이 여기에 동적으로 추가됩니다 -->
             </form>
@@ -226,7 +226,7 @@
             <button onclick="submitFeedback()" id="submit-feedback-btn">소감문 전송하기</button>
             <p id="submit-status" style="display: none; margin-top: 15px; font-size: 1.2em;"></p>
 
-            <button onclick="checkRank()" id="check-rank-btn" style="display: none; margin-top: 15px;">🏆 현재 등수 확인</button>
+            <button onclick="checkRank()" id="check-rank-btn" style="display: none; margin-top: 15px;">🏆 종합 등수 확인</button>
             <div id="rank-display" style="margin-top: 20px; font-size: 1.3em;"></div>
 
             <div id="explanations"></div>
@@ -275,18 +275,18 @@
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7BaqB96gYycM_LTuoKgdoMMT3xNECdKxNBut2Lz15cXGqDrjYoKueBH3vV3sWszeS/exec';
 
         function startQuiz() {
-            const school = document.getElementById('school').value;
-            const name = document.getElementById('name').value;
+            const schoolInput = document.getElementById('school').value;
+            const nameInput = document.getElementById('name').value;
             const errorMessage = document.getElementById('error-message');
 
-            if (!school.trim() || !name.trim()) {
+            if (!schoolInput.trim() || !nameInput.trim()) {
                 errorMessage.style.display = 'block';
                 return;
             }
             errorMessage.style.display = 'none';
 
-            resultData.school = school;
-            resultData.name = name;
+            resultData.school = schoolInput.trim();
+            resultData.name = nameInput.trim();
 
             document.getElementById('start-page').style.display = 'none';
             document.getElementById('quiz-container').style.display = 'block';
@@ -337,7 +337,7 @@
             });
         }
 
-        function submitQuiz() {
+        async function submitQuiz() {
             clearInterval(timer);
             const endTime = new Date();
             const timeDiff = Math.floor((endTime - startTime) / 1000);
@@ -371,13 +371,11 @@
             document.getElementById('score').textContent = `${resultData.score}점`;
             document.getElementById('elapsed-time').textContent = resultData.elapsedTime;
             
-            // ★ 변경점: 결과 확인 시점에 바로 데이터 전송
-            sendInitialResult();
-            
             displayExplanations(userAnswers);
+            
+            await sendInitialResult();
         }
 
-        // ★ 추가된 함수: 소감문 없이 초기 결과를 전송
         async function sendInitialResult() {
             const formData = new FormData();
             formData.append('action', 'submitResult');
@@ -422,7 +420,6 @@
             explanationsContainer.innerHTML = explanationsHTML;
         }
         
-        // ★ 변경된 함수: 소감문만 업데이트하도록 전송
         async function submitFeedback() {
             const feedback = document.getElementById('feedback').value;
             const submitStatus = document.getElementById('submit-status');
@@ -478,7 +475,15 @@
             rankDisplay.innerHTML = '';
 
             try {
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getRankData`);
+                const formData = new FormData();
+                formData.append('action', 'getRankData');
+                formData.append('name', resultData.name);
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
@@ -489,7 +494,25 @@
                 } else {
                     let finalHTML = '';
 
-                    // Display Top Ranks (1st and 2nd place)
+                    // 나의 등수 먼저 표시
+                    if (data.myRank) {
+                        finalHTML += `
+                            <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                                <p style="margin: 0; font-size: 1.5em; color: #0284c7;">🌟 나의 등수 🌟</p>
+                                <p style="margin: 8px 0 0 0; font-size: 1.3em;"><b>${data.myRank.rank}위</b></p>
+                                <p style="margin: 4px 0 0 0; font-size: 1.2em;"><b>점수:</b> ${data.myRank.score}점</p>
+                                <p style="margin: 4px 0 0 0; font-size: 1.2em;"><b>소요 시간:</b> ${data.myRank.elapsedTime}</p>
+                            </div>
+                        `;
+                    } else {
+                         finalHTML += `
+                            <div style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                                 <p style="margin: 0; font-size: 1.2em; color: #b91c1c;">나의 등수 정보를 찾을 수 없습니다.</p>
+                            </div>
+                        `;
+                    }
+
+                    // 종합 1, 2위 표시
                     if (data.ranks && data.ranks.length > 0) {
                         const medals = ['🥇', '🥈'];
                         const colors = ['#f59e0b', '#6b7280'];
@@ -499,7 +522,7 @@
                         data.ranks.slice(0, 2).forEach((rank, index) => {
                             finalHTML += `
                                 <div style="background-color: ${bgColors[index]}; border: 1px solid ${borderColors[index]}; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
-                                    <p style="margin: 0; font-size: 1.5em; color: ${colors[index]};">${medals[index]} 현재 ${index + 1}위 ${medals[index]}</p>
+                                    <p style="margin: 0; font-size: 1.5em; color: ${colors[index]};">${medals[index]} 종합 ${index + 1}위 ${medals[index]}</p>
                                     <p style="margin: 8px 0 0 0; font-size: 1.3em;"><b>이름:</b> ${rank.name}</p>
                                     <p style="margin: 4px 0 0 0; font-size: 1.2em;"><b>점수:</b> ${rank.score}점</p>
                                     <p style="margin: 4px 0 0 0; font-size: 1.2em;"><b>소요 시간:</b> ${rank.elapsedTime}</p>
@@ -507,10 +530,10 @@
                             `;
                         });
                     } else {
-                        finalHTML += '<p>아직 순위 데이터가 없습니다.</p>';
+                        finalHTML += '<p>아직 종합 순위 데이터가 없습니다.</p>';
                     }
 
-                    // Display Best Feedback Award
+                    // 소감 우수상 표시
                     if (data.bestFeedback) {
                         finalHTML += `
                             <div style="background-color: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 10px; margin-top: 20px;">
@@ -530,11 +553,10 @@
                 rankDisplay.innerHTML = '<p style="color: red;">등수 정보를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.</p>';
             } finally {
                 rankBtn.disabled = false;
-                rankBtn.textContent = '🏆 현재 등수 확인';
+                rankBtn.textContent = '🏆 종합 등수 확인';
             }
         }
     </script>
 </body>
 </html>
-
 
